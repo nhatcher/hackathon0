@@ -117,8 +117,8 @@ function moveControllers() {
   const ctrlls = worldSate.controllers;
   for (let key in ctrlls) {
     let x = ctrlls[key].x;
-    let y = ctrlls[key].y;
-    const angle = ctrlls[key].angle;
+    let y = height - ctrlls[key].y;
+    const angle = Math.PI/2 - ctrlls[key].angle;
     const speed = ctrlls[key].speed;
     // console.log(x,y, rad, key)
     x += Math.ceil(speed*Math.cos(angle));
@@ -128,7 +128,7 @@ function moveControllers() {
       ctrlls[key].x = x;
     }
     if (y < height - padding && y > padding) {
-      ctrlls[key].y = y;
+      ctrlls[key].y = height - y;
     }
   }
 }
@@ -140,8 +140,8 @@ function moveProjectiles() {
     const key = keys[i];
     const projectile = projectiles[key];
     let x = projectile.x;
-    let y = projectile.y;
-    const angle = projectile.angle;
+    let y = heigh - projectile.y;
+    const angle = Math.PI/2 - projectile.angle;
     const speed = projectiles.speed;
     // console.log(x,y, rad, key)
     x += Math.ceil(speed*Math.cos(angle));
@@ -150,12 +150,12 @@ function moveProjectiles() {
     if (x < width - padding && x > padding) {
       projectile.x = x;
     } else {
-      delete projectiles[key];
+      // delete projectiles[key];
     }
     if (y < height - padding && y > padding) {
-      projectile.y = y;
+      projectile.y = height - y;
     } else {
-      delete projectiles[key];
+      // delete projectiles[key];
     }
   }
 }
