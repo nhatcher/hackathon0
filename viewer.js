@@ -7,17 +7,12 @@ $(function() {
 
   console.log('socket is:', socket);
 
-  socket.on('controllerListUpdated', function(controllerList){
-    console.log('EVENT:', controllerList);
-    renderControllerList(controllerList);
+  socket.on('refresh', function(newWorldState){
+    console.log('new world state:', newWorldState);
+    draw(newWorldState);
   });
 });
 
-function renderControllerList(controllerList) {
-  const ul = $('body ul#controller-list');
-  ul.empty();
-  controllerList.forEach(function(controllerID) {
-    const li = $('<li>').html(controllerID);
-    li.appendTo(ul);
-  });
+function draw(worldState) {
+  $('body').empty().html(JSON.stringify(worldState, null, 2));
 }
