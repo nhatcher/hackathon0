@@ -19,8 +19,12 @@ app.get('/controller', function(req, res) {
 const viewer_socket = io.of('/viewer');
 const controller_socket = io.of('/controller');
 
+let viewer;
+let controllers = [];
+
 viewer_socket.on('connection', function(socket) {
   console.log('viewer connected', socket.id);
+  viewer = socket;
   socket.on('disconnect', function() {
     console.log('viewer disconnected', socket.id);
   });
@@ -28,6 +32,8 @@ viewer_socket.on('connection', function(socket) {
 
 controller_socket.on('connection', function(socket) {
   console.log('a controller connected', socket.id);
+  controllers.push(socket.id);
+  viewer.emit('controllerListUpdated', controllers);
   socket.on('disconnect', function() {
     console.log('a controller disconnected', socket.id);
   });

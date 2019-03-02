@@ -8,4 +8,8 @@ $(function() {
   const socket = io.connect('/viewer');
 
   console.log('socket is:', socket);
+
+  socket.on('controllerListUpdated', function(a,b,c){
+    console.log('EVENT:', a, b, c);
+  })
 });
