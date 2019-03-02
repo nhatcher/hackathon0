@@ -19,7 +19,7 @@ const fps = 5;
 const padding = 10;
 const speedUnit = 0.2;
 const angleUnit = 1*2*Math.PI/360; // 10 degrees
-const maxSpeed = 20;
+const maxSpeed = 30;
 
 const worldSate = {
   width: width,
@@ -99,7 +99,7 @@ controller_socket.on('connection', function(socket) {
         }
       break;
       case 'back':
-        speed = Math.floor(worldSate.controllers[socket.id].speed - speedUnit);
+        speed = Math.floor(Math.abs(worldSate.controllers[socket.id].speed - speedUnit));
         if (speed>=0) {
           worldSate.controllers[socket.id].speed = speed;
         }
