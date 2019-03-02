@@ -64,4 +64,9 @@ function draw(worldState) {
     ctx.restore();
   });
 
+  ctx.fillStyle = '#ffffff';
+  Object.keys(worldState.projectiles).forEach(function(projectile) {
+    ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI*2);
+    ctx.fill();
+  });
 }
