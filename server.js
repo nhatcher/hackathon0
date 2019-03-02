@@ -15,12 +15,15 @@ const controller_socket = io.of('/controller');
 
 const width = 1920;
 const height = 1080;
+const fps = 5;
+const speed = 1;
+const padding = 10;
 
 const worldSate = {
   width: width,
   height: height,
   controllers: {},
-  projectiles: []
+  projectiles: {}
 }
 
 app.get('/viewer', function(req, res){
@@ -57,7 +60,8 @@ controller_socket.on('connection', function(socket) {
   worldSate.controllers[socket.id] = {
     x: parseInt((width+10)*Math.random()) + 20,
     y: parseInt((height+10)*Math.random()) + 20,
-    color: getRandomColor()
+    color: getRandomColor(),
+    angle: Math.random()*2*Math.PI
   }
   refreshViewers();
   socket.on('disconnect', () => {
@@ -74,4 +78,29 @@ controller_socket.on('connection', function(socket) {
 http.listen(port, () => {
   console.log(`listening on *:${port}`);
 });
+
+
+function move(ctrlls) {
+  for (let key in ctrlls) {
+    let x = ctrlls[key].x;
+    let y = ctrlls[key].y;
+    x += speed*Math.cos(x);
+    y += speed*Math.sin(y);
+    if (x < width - padding && x > padding) {
+      ctrlls[key].x = x;
+    }
+    if (y < height - padding && y > padding) {
+      ctrlls[key].y = y;
+    }
+  }
+}
+
+function loop() {
+  move(worldSate.controllers);
+  move(worldSate.projectiles);
+
+  refreshViewers();
+}
+
+setInterval(loop, 1/fps);
 
