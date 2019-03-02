@@ -16,7 +16,7 @@ const controller_socket = io.of('/controller');
 const width = 1920;
 const height = 1080;
 const fps = 5;
-const speed = 1;
+const speed = 5;
 const padding = 10;
 
 const worldSate = {
@@ -84,8 +84,11 @@ function move(ctrlls) {
   for (let key in ctrlls) {
     let x = ctrlls[key].x;
     let y = ctrlls[key].y;
-    x += speed*Math.cos(x);
-    y += speed*Math.sin(y);
+    const angle = ctrlls[key].angle;
+    // console.log(x,y, rad, key)
+    x += Math.ceil(speed*Math.cos(angle));
+    y += Math.ceil(speed*Math.sin(angle));
+    // console.log(x, y);
     if (x < width - padding && x > padding) {
       ctrlls[key].x = x;
     }
@@ -102,5 +105,5 @@ function loop() {
   refreshViewers();
 }
 
-setInterval(loop, 1/fps);
+setInterval(loop, 1000/fps);
 
