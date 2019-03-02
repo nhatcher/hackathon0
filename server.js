@@ -19,7 +19,11 @@ app.get('/controller', function(req, res) {
 const viewer_socket = io.of('/viewer');
 const controller_socket = io.of('/controller');
 
-
+function refreshViewers() {
+  for (let viewer_id in viewers) {
+    viewers[viewer_id].emit('controllerListUpdated', Object.keys(controllers));
+  }
+}
 viewer_socket.on('connection', function(socket) {
   console.log('viewer connected', socket.id);
   viewers[socket.id] = socket;
@@ -31,11 +35,11 @@ viewer_socket.on('connection', function(socket) {
 controller_socket.on('connection', function(socket) {
   console.log('a controller connected', socket.id);
   controllers[socket.id] = socket;
-  for (let viewer_id in viewers) {
-    viewers[viewer_id].emit('controllerListUpdated', Object.keys(controllers));
-  }
+  refreshViewers();
   socket.on('disconnect', function() {
     console.log('a controller disconnected', socket.id);
+    delete controllers[socket.id];
+    refreshViewers();
   });
 });
 
