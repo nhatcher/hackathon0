@@ -25,7 +25,7 @@ function generateStars() {
     })
   }
 }
-
+let last =0;
 function draw(worldState) {
   $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
   const canvas = $('#canvas');
@@ -67,6 +67,7 @@ function draw(worldState) {
   ctx.fillStyle = '#ffffff';
   Object.keys(worldState.projectiles).forEach(function(projectileKey) {
     const projectile = worldState.projectiles[projectileKey];
+    ctx.beginPath();
     ctx.moveTo(projectile.x, projectile.y);
     ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI*2);
     ctx.fill();

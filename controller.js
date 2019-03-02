@@ -1,8 +1,8 @@
 console.log('controller js loaded');
 
 const CONST = Object.freeze({
-  ROTATE_MIN: 20,
-  ROTATE_MAX: 60
+  ROTATE_MIN: 10,
+  ROTATE_MAX: 90
 });
 
 let socket;
