@@ -17,9 +17,9 @@ const width = 1920;
 const height = 1080;
 const fps = 5;
 const padding = 10;
-const speedUnit = 1;
-const angleUnit = 10*2*Math.PI/360; // 10 degrees
-const maxSpeed = 20;
+const speedUnit = 0.2;
+const angleUnit = 1*2*Math.PI/360; // 10 degrees
+const maxSpeed = 2;
 
 const worldSate = {
   width: width,
