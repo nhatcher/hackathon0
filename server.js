@@ -17,9 +17,9 @@ const width = 1920;
 const height = 1080;
 const fps = 5;
 const padding = 10;
-const speedUnit = 1;
-const angleUnit = 10*2*Math.PI/360; // 10 degrees
-const maxSpeed = 20;
+const speedUnit = 0.2;
+const angleUnit = 1*2*Math.PI/360; // 10 degrees
+const maxSpeed = 2;
 
 const worldSate = {
   width: width,
@@ -78,7 +78,7 @@ controller_socket.on('connection', function(socket) {
     const ctrl = worldSate.controllers[socket.id];
     switch(command) {
       case 'fire':
-        const id = Math.random()*1000000;
+        const id = Math.ceil(Math.random()*1000000);
         worldSate.projectiles[id] = {
           x: ctrl.x,
           y: ctrl.y,
@@ -144,12 +144,12 @@ function moveProjectiles() {
     y += Math.ceil(speed*Math.sin(angle));
     // console.log(x, y);
     if (x < width - padding && x > padding) {
-      ctrlls[key].x = x;
+      projectile.x = x;
     } else {
       delete projectiles[key];
     }
     if (y < height - padding && y > padding) {
-      ctrlls[key].y = y;
+      projectile.y = y;
     } else {
       delete projectiles[key];
     }
