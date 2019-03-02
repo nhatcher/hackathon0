@@ -20,16 +20,16 @@ const viewer_socket = io.of('/viewer');
 const controller_socket = io.of('/controller');
 
 viewer_socket.on('connection', function(socket) {
-  console.log('a user connected', socket.id);
+  console.log('viewer connected', socket.id);
   socket.on('disconnect', function() {
-    console.log('user disconnected');
+    console.log('viewer disconnected', socket.id);
   });
 });
 
 controller_socket.on('connection', function(socket) {
-  console.log('Viewer connected', socket.id);
+  console.log('a controller connected', socket.id);
   socket.on('disconnect', function() {
-    console.log('Viewer disconnected');
+    console.log('a controller disconnected', socket.id);
   });
 });
 
