@@ -13,8 +13,8 @@ const port = 3000;
 const viewer_socket = io.of('/viewer');
 const controller_socket = io.of('/controller');
 
-const width = 1920;
-const height = 1080;
+const width = 1920*0.75;
+const height = 1080*0.75;
 const fps = 5;
 const padding = 10;
 const speedUnit = 0.2;
@@ -76,6 +76,7 @@ controller_socket.on('connection', function(socket) {
   socket.on('command', (command) => {
     console.log(socket.id, command);
     const ctrl = worldSate.controllers[socket.id];
+    let speed = 0;
     switch(command) {
       case 'fire':
         const id = Math.ceil(Math.random()*1000000);
@@ -92,12 +93,15 @@ controller_socket.on('connection', function(socket) {
       case 'right':
         worldSate.controllers[socket.id].angle += angleUnit;
       case 'forward':
-        worldSate.controllers[socket.id].speed += speedUnit;
+        speed = worldSate.controllers[socket.id].speed + speedUnit;
+        if (speed<maxSpeed) {
+          worldSate.controllers[socket.id].speed = speed;
+        }
       break;
       case 'back':
-        const speed = worldSate.controllers[socket.id].speed - speedUnit;
-        if (speed>0 && speed<maxSpeed) {
-          worldSate.controllers[socket.id].speed += speed;
+        speed = worldSate.controllers[socket.id].speed - speedUnit;
+        if (speed>0) {
+          worldSate.controllers[socket.id].speed = speed;
         }
       break;
     }
