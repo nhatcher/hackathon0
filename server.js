@@ -15,7 +15,7 @@ const controller_socket = io.of('/controller');
 
 const width = 1920*0.75;
 const height = 1080*0.75;
-const fps = 5;
+const fps = 25;
 const padding = 10;
 const speedUnit = 0.2;
 const angleUnit = 1*2*Math.PI/360; // 10 degrees
