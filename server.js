@@ -16,8 +16,10 @@ const controller_socket = io.of('/controller');
 const width = 1920;
 const height = 1080;
 const fps = 5;
-const speed = 5;
 const padding = 10;
+const speedUnit = 1;
+const angleUnit = 10*2*Math.PI/360; // 10 degrees
+const maxSpeed = 20;
 
 const worldSate = {
   width: width,
@@ -61,7 +63,8 @@ controller_socket.on('connection', function(socket) {
     x: parseInt((width+10)*Math.random()) + 20,
     y: parseInt((height+10)*Math.random()) + 20,
     color: getRandomColor(),
-    angle: Math.random()*2*Math.PI
+    angle: Math.random()*2*Math.PI,
+    speed: 0
   }
   refreshViewers();
   socket.on('disconnect', () => {
@@ -72,6 +75,32 @@ controller_socket.on('connection', function(socket) {
   });
   socket.on('command', (command) => {
     console.log(socket.id, command);
+    const ctrl = worldSate.controllers[socket.id];
+    switch(command) {
+      case 'fire':
+        const id = Math.random()*1000000;
+        worldSate.projectiles[id] = {
+          x: ctrl.x,
+          y: ctrl.y,
+          angle: ctrl.angle,
+          speed: ctrl.speed  + speedUnit
+        }
+      break;
+      case 'left':
+        ctrl.angle -= angleUnit; 
+      break;
+      case 'right':
+        worldSate.controllers[socket.id].angle += angleUnit;
+      case 'forward':
+        worldSate.controllers[socket.id].speed += speedUnit;
+      break;
+      case 'back':
+        const speed = worldSate.controllers[socket.id].speed - speedUnit;
+        if (speed>0 && speed<maxSpeed) {
+          worldSate.controllers[socket.id].speed += speed;
+        }
+      break;
+    }
   })
 });
 
@@ -80,11 +109,13 @@ http.listen(port, () => {
 });
 
 
-function move(ctrlls) {
+function moveControllers() {
+  const ctrlls = worldSate.controllers;
   for (let key in ctrlls) {
     let x = ctrlls[key].x;
     let y = ctrlls[key].y;
     const angle = ctrlls[key].angle;
+    const speed = ctrlls[key].speed;
     // console.log(x,y, rad, key)
     x += Math.ceil(speed*Math.cos(angle));
     y += Math.ceil(speed*Math.sin(angle));
@@ -98,9 +129,36 @@ function move(ctrlls) {
   }
 }
 
+function moveProjectiles() {
+  const projectiles = worldSate.projectiles;
+  const keys = Object.keys(projectiles);
+  for (let i=0; i<keys.length; i++) {
+    const key = keys[i];
+    const projectile = projectiles[key];
+    let x = projectile.x;
+    let y = projectile.y;
+    const angle = projectile.angle;
+    const speed = projectiles.speed;
+    // console.log(x,y, rad, key)
+    x += Math.ceil(speed*Math.cos(angle));
+    y += Math.ceil(speed*Math.sin(angle));
+    // console.log(x, y);
+    if (x < width - padding && x > padding) {
+      ctrlls[key].x = x;
+    } else {
+      delete projectiles[key];
+    }
+    if (y < height - padding && y > padding) {
+      ctrlls[key].y = y;
+    } else {
+      delete projectiles[key];
+    }
+  }
+}
+
 function loop() {
-  move(worldSate.controllers);
-  move(worldSate.projectiles);
+  moveControllers();
+  moveProjectiles();
 
   refreshViewers();
 }
