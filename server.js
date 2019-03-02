@@ -5,8 +5,8 @@ const io = require('socket.io')(http);
 
 app.use(express.static(__dirname));
 
-const ctrs = [];
-const viewers = [];
+const controllers = {};
+const viewers = {};
 
 app.get('/viewer', function(req, res){
   res.sendFile(__dirname +  '/viewer.html');
@@ -19,12 +19,10 @@ app.get('/controller', function(req, res) {
 const viewer_socket = io.of('/viewer');
 const controller_socket = io.of('/controller');
 
-let viewer;
-let controllers = [];
 
 viewer_socket.on('connection', function(socket) {
   console.log('viewer connected', socket.id);
-  viewer = socket;
+  viewers[socket.id] = socket;
   socket.on('disconnect', function() {
     console.log('viewer disconnected', socket.id);
   });
@@ -32,8 +30,10 @@ viewer_socket.on('connection', function(socket) {
 
 controller_socket.on('connection', function(socket) {
   console.log('a controller connected', socket.id);
-  controllers.push(socket.id);
-  viewer.emit('controllerListUpdated', controllers);
+  controllers[socket.id] = socket;
+  for (let viewer_id in viewers) {
+    viewers[viewer_id].emit('controllerListUpdated', Object.keys(controllers));
+  }
   socket.on('disconnect', function() {
     console.log('a controller disconnected', socket.id);
   });
