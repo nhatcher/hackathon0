@@ -133,29 +133,23 @@ function moveControllers() {
   }
 }
 
+
 function moveProjectiles() {
-  const projectiles = worldSate.projectiles;
-  const keys = Object.keys(projectiles);
-  for (let i=0; i<keys.length; i++) {
-    const key = keys[i];
-    const projectile = projectiles[key];
-    let x = projectile.x;
-    let y = height - projectile.y;
-    const angle = Math.PI/2 - projectile.angle;
-    const speed = projectiles.speed;
+  const ctrlls = worldSate.projectiles;
+  for (let key in ctrlls) {
+    let x = ctrlls[key].x;
+    let y = height - ctrlls[key].y;
+    const angle = Math.PI/2 - ctrlls[key].angle;
+    const speed = ctrlls[key].speed;
     // console.log(x,y, rad, key)
     x += Math.ceil(speed*Math.cos(angle));
     y += Math.ceil(speed*Math.sin(angle));
     // console.log(x, y);
     if (x < width - padding && x > padding) {
-      projectile.x = x;
-    } else {
-      // delete projectiles[key];
+      ctrlls[key].x = x;
     }
     if (y < height - padding && y > padding) {
-      projectile.y = height - y;
-    } else {
-      // delete projectiles[key];
+      ctrlls[key].y = height - y;
     }
   }
 }
