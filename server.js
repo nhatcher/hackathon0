@@ -19,6 +19,7 @@ const fps = 5;
 const padding = 10;
 const speedUnit = 1;
 const angleUnit = 10*2*Math.PI/360; // 10 degrees
+const maxSpeed = 20;
 
 const worldSate = {
   width: width,
@@ -95,7 +96,7 @@ controller_socket.on('connection', function(socket) {
       break;
       case 'back':
         const speed = worldSate.controllers[socket.id].speed - speedUnit;
-        if (speed>0) {
+        if (speed>0 && speed<maxSpeed) {
           worldSate.controllers[socket.id].speed += speed;
         }
       break;
@@ -108,7 +109,8 @@ http.listen(port, () => {
 });
 
 
-function move(ctrlls) {
+function moveControllers() {
+  const ctrlls = worldSate.controllers;
   for (let key in ctrlls) {
     let x = ctrlls[key].x;
     let y = ctrlls[key].y;
@@ -127,9 +129,36 @@ function move(ctrlls) {
   }
 }
 
+function moveProjectiles() {
+  const projectiles = worldSate.projectiles;
+  const keys = Object.keys(projectiles);
+  for (let i=0; i<keys.length; i++) {
+    const key = keys[i];
+    const projectile = projectiles[key];
+    let x = projectile.x;
+    let y = projectile.y;
+    const angle = projectile.angle;
+    const speed = projectiles.speed;
+    // console.log(x,y, rad, key)
+    x += Math.ceil(speed*Math.cos(angle));
+    y += Math.ceil(speed*Math.sin(angle));
+    // console.log(x, y);
+    if (x < width - padding && x > padding) {
+      ctrlls[key].x = x;
+    } else {
+      delete projectiles[key];
+    }
+    if (y < height - padding && y > padding) {
+      ctrlls[key].y = y;
+    } else {
+      delete projectiles[key];
+    }
+  }
+}
+
 function loop() {
-  move(worldSate.controllers);
-  move(worldSate.projectiles);
+  moveControllers();
+  moveProjectiles();
 
   refreshViewers();
 }
