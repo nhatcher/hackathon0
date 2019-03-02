@@ -3,13 +3,21 @@ console.log('viewer js loaded');
 
 
 $(function() {
-  $('body').html('No GUI for now, viewer JS running...')
-
   const socket = io.connect('/viewer');
 
   console.log('socket is:', socket);
 
-  socket.on('controllerListUpdated', function(a,b,c){
-    console.log('EVENT:', a, b, c);
-  })
+  socket.on('controllerListUpdated', function(controllerList){
+    console.log('EVENT:', controllerList);
+    renderControllerList(controllerList);
+  });
 });
+
+function renderControllerList(controllerList) {
+  const ul = $('body ul#controller-list');
+  ul.empty();
+  controllerList.forEach(function(controllerID) {
+    const li = $('<li>').html(controllerID);
+    li.appendTo(ul);
+  });
+}
