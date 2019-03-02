@@ -19,7 +19,7 @@ const fps = 5;
 const padding = 10;
 const speedUnit = 0.2;
 const angleUnit = 1*2*Math.PI/360; // 10 degrees
-const maxSpeed = 2;
+const maxSpeed = 20;
 
 const worldSate = {
   width: width,
@@ -99,8 +99,8 @@ controller_socket.on('connection', function(socket) {
         }
       break;
       case 'back':
-        speed = worldSate.controllers[socket.id].speed - speedUnit;
-        if (speed>0) {
+        speed = Math.floor(worldSate.controllers[socket.id].speed - speedUnit);
+        if (speed>=0) {
           worldSate.controllers[socket.id].speed = speed;
         }
       break;
@@ -140,7 +140,7 @@ function moveProjectiles() {
     const key = keys[i];
     const projectile = projectiles[key];
     let x = projectile.x;
-    let y = heigh - projectile.y;
+    let y = height - projectile.y;
     const angle = Math.PI/2 - projectile.angle;
     const speed = projectiles.speed;
     // console.log(x,y, rad, key)
