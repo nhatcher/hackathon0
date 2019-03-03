@@ -20,7 +20,7 @@ $(function() {
 
 const stars = [];
 function generateStars() {
-  var starCount = Math.random()*1000;
+  var starCount = Math.random()*800 + 200;
   for (var i=0;i<starCount;i++) {
     stars.push({
       x: Math.random(),
