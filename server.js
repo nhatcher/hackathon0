@@ -19,7 +19,7 @@ const fps = 25;
 const padding = 10;
 const speedUnit = 1;
 const angleUnit = 1*2*Math.PI/360;
-const maxSpeed = 30;
+const maxSpeed = 50;
 
 const worldState = {
   width: width,
@@ -77,7 +77,7 @@ controller_socket.on('connection', function(socket) {
   socket.on('command', (command) => {
     console.log(socket.id, command);
     const ctrl = worldState.controllers[socket.id];
-    if (!ctrl.alive) {
+    if (!ctrl || !ctrl.alive) {
       return;
     }
     let speed = 0;
@@ -105,9 +105,7 @@ controller_socket.on('connection', function(socket) {
       break;
       case 'back':
         speed = Math.floor(Math.abs(worldState.controllers[socket.id].speed - speedUnit));
-        if (speed>=0) {
-          worldState.controllers[socket.id].speed = speed;
-        }
+        worldState.controllers[socket.id].speed = speed;
       break;
     }
   })
@@ -182,6 +180,10 @@ function testCollission(ctrlls, projectiles) {
       const ctrl = ctrlls[key];
       if (isCollision(ctrl, x, y)) {
         ctrl.alive = false;
+        setTimeout(() => {
+          delete ctrlls[key];
+          delete controllers[key];
+        }, 2000);
       }
     }
   }

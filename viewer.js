@@ -30,7 +30,7 @@ function generateStars() {
 }
 
 function draw(worldState) {
-  $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
+  // $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
   const canvas = $('#canvas');
   const ctx = canvas[0].getContext('2d');
 
