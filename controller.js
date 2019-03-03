@@ -16,6 +16,9 @@ $(function() {
       game_started = true;
       noSleep.enable();
       socket = io.connect('/controller');
+      socket.on('setting', (type, color) => {
+        $(this).css('background', color);
+      })
       window.addEventListener('deviceorientation', processDeviceOrientationEvent);
       $(this).text('FIRE!');
     }

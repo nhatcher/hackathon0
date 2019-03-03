@@ -65,16 +65,18 @@ viewer_socket.on('connection', function(socket) {
 controller_socket.on('connection', function(socket) {
   console.log('a controller connected', socket.id);
   controllers[socket.id] = socket;
+  const color = getRandomColor();
   worldState.controllers[socket.id] = {
     x: parseInt((width+10)*Math.random()) + 20,
     y: parseInt((height+10)*Math.random()) + 20,
-    color: getRandomColor(),
+    color: color,
     angle: Math.random()*2*Math.PI,
     speed: 0,
     alive: true,
     beta: 0,
     gamma: 0
   }
+  socket.emit('setting', 'color', color);
   sendSound('new_player');
   refreshViewers();
   socket.on('disconnect', () => {
@@ -138,7 +140,6 @@ function movePeriodic(ctrlls) {
     let y = ctrlls[key].y;
     let angle = ctrlls[key].angle;
     let speed = ctrlls[key].speed;
-    // console.log(x,y, rad, key)
     if ('beta' in ctrl) {
       const beta = ctrl.beta;
       const gamma = ctrl.gamma;
@@ -152,7 +153,6 @@ function movePeriodic(ctrlls) {
     }
     x += Math.ceil(speed*Math.sin(angle)*5/fps);
     y -= Math.ceil(speed*Math.cos(angle)*5/fps);
-    // console.log(x, y);
     if (x > width ) {
       x = x - width;
     }
@@ -171,22 +171,22 @@ function movePeriodic(ctrlls) {
   }
 }
 
-
 function moveBounded(ctrlls) {
-  for (let key in ctrlls) {
-    let x = ctrlls[key].x;
-    let y = height - ctrlls[key].y;
-    const angle = Math.PI/2 - ctrlls[key].angle;
-    const speed = ctrlls[key].speed*5/fps;
-    // console.log(x,y, rad, key)
-    x += Math.ceil(speed*Math.cos(angle));
-    y += Math.ceil(speed*Math.sin(angle));
-    // console.log(x, y);
-    if (x < width - padding && x > padding) {
-      ctrlls[key].x = x;
-    }
-    if (y < height - padding && y > padding) {
-      ctrlls[key].y = height - y;
+  const keys = Object.keys(ctrlls);
+  for (let i=0; i<keys.length ; i++) {
+    const key = keys[i];
+    const ctrl = ctrlls[key];
+    let x = ctrl.x;
+    let y = ctrl.y;
+    let angle = ctrl.angle;
+    let speed = ctrl.speed;
+    x += Math.ceil(speed*Math.sin(angle)*5/fps);
+    y -= Math.ceil(speed*Math.cos(angle)*5/fps);
+    if (x <0 || x> width || y<0 || y>height) {
+      delete ctrlls[key];
+    } else {
+      ctrl.x = x;
+      ctrl.y = y;
     }
   }
 }
@@ -223,7 +223,7 @@ function loop() {
   const ctrlls = worldState.controllers;
   const projectiles = worldState.projectiles;
   movePeriodic(ctrlls);
-  movePeriodic(projectiles);
+  moveBounded(projectiles);
   testCollission(ctrlls, projectiles);
 
   refreshViewers();
