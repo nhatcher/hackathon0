@@ -64,7 +64,8 @@ controller_socket.on('connection', function(socket) {
     y: parseInt((height+10)*Math.random()) + 20,
     color: getRandomColor(),
     angle: Math.random()*2*Math.PI,
-    speed: 0
+    speed: 0,
+    alive: true
   }
   refreshViewers();
   socket.on('disconnect', () => {
@@ -80,9 +81,10 @@ controller_socket.on('connection', function(socket) {
     switch(command) {
       case 'fire':
         const id = Math.ceil(Math.random()*1000000);
+        const angle = Math.PI/2 - ctrl.angle
         worldState.projectiles[id] = {
-          x: ctrl.x,
-          y: ctrl.y,
+          x: ctrl.x + 2*padding*Math.sin(angle),
+          y: ctrl.y - 2*padding*Math.cos(angle),
           angle: ctrl.angle,
           speed: ctrl.speed  + speedUnit*10
         }
@@ -159,9 +161,35 @@ function moveBounded(ctrlls) {
   }
 }
 
+function isCollision(ctrl, x, y) {
+  const cx = ctrl.x;
+  const cy = ctrl.y;
+  if (Math.abs(x-cx)<padding && Math.abs(y-cy) < padding) {
+    return true;
+  }
+  return false;
+}
+
+function testCollission(ctrlls, projectiles) {
+  for (let p_id in projectiles) {
+    const projectile = projectiles[p_id];
+    const x = projectile.x;
+    const y = projectile.y;
+    for (let key in ctrlls) {
+      const ctrl = ctrlls[key];
+      if (isCollision(ctrl, x, y)) {
+        ctrl.alive = false;
+      }
+    }
+  }
+}
+
 function loop() {
-  movePeriodic(worldState.controllers);
-  movePeriodic(worldState.projectiles);
+  const ctrlls = worldState.controllers;
+  const projectiles = worldState.projectiles;
+  movePeriodic(ctrlls);
+  movePeriodic(projectiles);
+  testCollission(ctrlls, projectiles);
 
   refreshViewers();
 }
