@@ -47,6 +47,12 @@ function refreshViewers() {
   }
 }
 
+function sendSound(type) {
+  for (let viewer_id in viewers) {
+    viewers[viewer_id].emit('sound', type);
+  }
+}
+
 viewer_socket.on('connection', function(socket) {
   console.log('viewer connected', socket.id);
   viewers[socket.id] = socket;
@@ -69,6 +75,7 @@ controller_socket.on('connection', function(socket) {
     beta: 0,
     gamma: 0
   }
+  sendSound('new_player');
   refreshViewers();
   socket.on('disconnect', () => {
     console.log('a controller disconnected', socket.id);
@@ -93,6 +100,7 @@ controller_socket.on('connection', function(socket) {
           angle: angle,
           speed: ctrl.speed  + speedUnit*10
         }
+        sendSound('fire');
       break;
       case 'orientation':
         ctrl.beta = 2*Math.PI*Math.floor(Math.abs(beta/10))*10*Math.sign(beta)/360;
@@ -200,6 +208,7 @@ function testCollission(ctrlls, projectiles) {
     for (let key in ctrlls) {
       const ctrl = ctrlls[key];
       if (isCollision(ctrl, x, y)) {
+        sendSound('explosion');
         ctrl.alive = false;
         setTimeout(() => {
           delete ctrlls[key];

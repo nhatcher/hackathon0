@@ -1,19 +1,24 @@
 console.log('controller js loaded');
 
 let socket;
+let game_started = false;
 
 const noSleep = new NoSleep();
 
 $(function() {
   $('div#status').html('Waiting for JS to detect orientation...');
 
-  socket = io.connect('/controller');
 
-  window.addEventListener('deviceorientation', processDeviceOrientationEvent);
-
-  $('#fire-button').on('click', function() {
-    noSleep.enable();
-    socket.emit('command', 'fire');
+  $('#button').on('click', function() {
+    if (game_started) {
+      socket.emit('command', 'fire');
+    } else {
+      game_started = true;
+      noSleep.enable();
+      socket = io.connect('/controller');
+      window.addEventListener('deviceorientation', processDeviceOrientationEvent);
+      $(this).text('FIRE!');
+    }
   });
 });
 
