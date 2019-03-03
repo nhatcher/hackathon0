@@ -77,15 +77,18 @@ controller_socket.on('connection', function(socket) {
   socket.on('command', (command) => {
     console.log(socket.id, command);
     const ctrl = worldState.controllers[socket.id];
+    if (!ctrl.alive) {
+      return;
+    }
     let speed = 0;
     switch(command) {
       case 'fire':
         const id = Math.ceil(Math.random()*1000000);
-        const angle = Math.PI/2 - ctrl.angle
+        const angle = ctrl.angle
         worldState.projectiles[id] = {
           x: ctrl.x + 2*padding*Math.sin(angle),
           y: ctrl.y - 2*padding*Math.cos(angle),
-          angle: ctrl.angle,
+          angle: angle,
           speed: ctrl.speed  + speedUnit*10
         }
       break;
@@ -118,12 +121,12 @@ http.listen(port, () => {
 function movePeriodic(ctrlls) {
   for (let key in ctrlls) {
     let x = ctrlls[key].x;
-    let y = height - ctrlls[key].y;
-    const angle = Math.PI/2 - ctrlls[key].angle;
+    let y = ctrlls[key].y;
+    const angle = ctrlls[key].angle;
     const speed = ctrlls[key].speed*5/fps;
     // console.log(x,y, rad, key)
-    x += Math.ceil(speed*Math.cos(angle));
-    y += Math.ceil(speed*Math.sin(angle));
+    x += Math.ceil(speed*Math.sin(angle));
+    y -= Math.ceil(speed*Math.cos(angle));
     // console.log(x, y);
     if (x > width ) {
       x = x - width;
@@ -137,7 +140,7 @@ function movePeriodic(ctrlls) {
     } else if (y < 0) {
       y = y + height;
     }
-    ctrlls[key].y = height - y;
+    ctrlls[key].y = y;
   }
 }
 
