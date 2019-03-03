@@ -65,7 +65,9 @@ controller_socket.on('connection', function(socket) {
     color: getRandomColor(),
     angle: Math.random()*2*Math.PI,
     speed: 0,
-    alive: true
+    alive: true,
+    beta: 0,
+    gamma: 0
   }
   refreshViewers();
   socket.on('disconnect', () => {
@@ -74,8 +76,8 @@ controller_socket.on('connection', function(socket) {
     delete worldState.controllers[socket.id];
     refreshViewers();
   });
-  socket.on('command', (command) => {
-    console.log(socket.id, command);
+  socket.on('command', (command, beta, gamma) => {
+    // console.log(socket.id, command);
     const ctrl = worldState.controllers[socket.id];
     if (!ctrl || !ctrl.alive) {
       return;
@@ -91,6 +93,10 @@ controller_socket.on('connection', function(socket) {
           angle: angle,
           speed: ctrl.speed  + speedUnit*10
         }
+      break;
+      case 'orientation':
+        ctrl.beta = 2*Math.PI*Math.floor(Math.abs(beta/10))*10*Math.sign(beta)/360;
+        ctrl.gamma = gamma;
       break;
       case 'left':
         ctrl.angle -= angleUnit;
@@ -119,13 +125,25 @@ http.listen(port, () => {
 
 function movePeriodic(ctrlls) {
   for (let key in ctrlls) {
+    const ctrl = ctrlls[key];
     let x = ctrlls[key].x;
     let y = ctrlls[key].y;
-    const angle = ctrlls[key].angle;
-    const speed = ctrlls[key].speed*5/fps;
+    let angle = ctrlls[key].angle;
+    let speed = ctrlls[key].speed;
     // console.log(x,y, rad, key)
-    x += Math.ceil(speed*Math.sin(angle));
-    y -= Math.ceil(speed*Math.cos(angle));
+    if ('beta' in ctrl) {
+      const beta = ctrl.beta;
+      const gamma = ctrl.gamma;
+      angle += beta*5/fps;
+      speed += gamma/fps;
+      if (speed>maxSpeed) {
+        speed = maxSpeed;
+      } else if (speed<0) {
+        speed = 0;
+      }
+    }
+    x += Math.ceil(speed*Math.sin(angle)*5/fps);
+    y -= Math.ceil(speed*Math.cos(angle)*5/fps);
     // console.log(x, y);
     if (x > width ) {
       x = x - width;
@@ -140,6 +158,8 @@ function movePeriodic(ctrlls) {
       y = y + height;
     }
     ctrlls[key].y = y;
+    ctrl.angle = angle;
+    ctrl.speed = speed;
   }
 }
 
