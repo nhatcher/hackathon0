@@ -88,7 +88,7 @@ controller_socket.on('connection', function(socket) {
         }
       break;
       case 'left':
-        ctrl.angle -= angleUnit; 
+        ctrl.angle -= angleUnit;
       break;
       case 'right':
         worldState.controllers[socket.id].angle += angleUnit;

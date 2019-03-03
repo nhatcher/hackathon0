@@ -3,6 +3,9 @@ console.log('viewer js loaded');
 // same as server.js padding + some extra to make it appear large enough
 const PADDING = 10 + 5;
 
+const explosionImg = new Image();
+explosionImg.src = '/assets/explosion.png';
+
 $(function() {
   const socket = io.connect('/viewer');
 
@@ -43,25 +46,8 @@ function draw(worldState) {
   });
 
   Object.keys(worldState.controllers).forEach(function(controllerID) {
-    const controller = worldState.controllers[controllerID];
-    ctx.save();
-    ctx.translate(controller.x, controller.y);
-    ctx.rotate(controller.angle);
-    ctx.fillStyle = controller.color;
-    ctx.beginPath();
-    const x = - PADDING;
-    const y = - PADDING;
-    ctx.moveTo(x + PADDING, y); // point of arrow
-    ctx.lineTo(x, y + PADDING * 2);
-    ctx.lineTo(x + PADDING, y + PADDING);
-    ctx.fill();
-    ctx.moveTo(x + PADDING, y); // point of arrow
-    ctx.lineTo(x + PADDING * 2, y + PADDING * 2);
-    ctx.lineTo(x + PADDING, y + PADDING);
-    ctx.lineTo(x + PADDING, y + PADDING);
-    ctx.fill();
-    ctx.translate(-controller.x, -controller.y);
-    ctx.restore();
+    const ship = worldState.controllers[controllerID];
+    drawShip(ctx, ship);
   });
 
   ctx.fillStyle = '#ffffff';
@@ -72,4 +58,43 @@ function draw(worldState) {
     ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI*2);
     ctx.fill();
   });
+}
+
+function drawShip(ctx, ship) {
+  ctx.save();
+  ctx.translate(ship.x, ship.y);
+  ctx.rotate(ship.angle);
+  ctx.fillStyle = ship.color;
+  ctx.beginPath();
+  const x = - PADDING;
+  const y = - PADDING;
+
+  if (ship.alive) {
+    ctx.moveTo(x + PADDING, y); // point of arrow
+    ctx.lineTo(x, y + PADDING * 2);
+    ctx.lineTo(x + PADDING, y + PADDING);
+    ctx.fill();
+    ctx.moveTo(x + PADDING, y); // point of arrow
+    ctx.lineTo(x + PADDING * 2, y + PADDING * 2);
+    ctx.lineTo(x + PADDING, y + PADDING);
+    ctx.lineTo(x + PADDING, y + PADDING);
+    ctx.fill();
+  } else {
+    ctx.drawImage(explosionImg, x, y, 2 * PADDING, 2 * PADDING);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + PADDING, y + PADDING / 2);
+    ctx.lineTo(x, y + PADDING / 2);
+    ctx.fill();
+    ctx.moveTo(x + PADDING * 2, y + PADDING * 2);
+    ctx.lineTo(x + PADDING * 3, y + PADDING * 3);
+    ctx.lineTo(x + PADDING * 2, y + PADDING * 2.5);
+    ctx.fill();
+    ctx.moveTo(x - PADDING, y - PADDING * 2);
+    ctx.lineTo(x - PADDING / 2, y - PADDING * 2.5);
+    ctx.lineTo(x - PADDING, y - PADDING * 0.5);
+    ctx.fill();
+  }
+
+  ctx.translate(-ship.x, -ship.y);
+  ctx.restore();
 }
