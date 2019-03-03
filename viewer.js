@@ -25,7 +25,7 @@ function generateStars() {
     })
   }
 }
-let last =0;
+
 function draw(worldState) {
   $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
   const canvas = $('#canvas');
