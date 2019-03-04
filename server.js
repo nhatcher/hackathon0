@@ -97,6 +97,7 @@ controller_socket.on('connection', function(socket) {
       break;
       case 'right':
         worldState.controllers[socket.id].angle += angleUnit;
+      break;
       case 'forward':
         speed = worldState.controllers[socket.id].speed + speedUnit;
         if (speed<maxSpeed) {
@@ -104,7 +105,7 @@ controller_socket.on('connection', function(socket) {
         }
       break;
       case 'back':
-        speed = Math.floor(Math.abs(worldState.controllers[socket.id].speed - speedUnit));
+        speed = Math.max(worldState.controllers[socket.id].speed - speedUnit, 0);
         worldState.controllers[socket.id].speed = speed;
       break;
     }
