@@ -2,8 +2,13 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const path = require('path');
 
-app.use(express.static(__dirname));
+
+const root_dir = path.join(__dirname, '/../', 'client');
+console.log(root_dir);
+
+app.use(express.static(root_dir));
 
 const controllers = {};
 const viewers = {};
@@ -29,11 +34,11 @@ const worldState = {
 }
 
 app.get('/viewer', function(req, res){
-  res.sendFile(__dirname +  '/viewer.html');
+  res.sendFile(path.join(root_dir, 'viewer', 'viewer.html'));
 });
 
 app.get('/controller', function(req, res) {
-  res.sendFile(__dirname + '/controller.html');
+  res.sendFile(path.join(root_dir, 'controller', 'controller.html'));
 });
 
 function getRandomColor() {

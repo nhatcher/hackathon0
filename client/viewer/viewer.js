@@ -4,12 +4,12 @@ console.log('viewer js loaded');
 const PADDING = 10 + 5;
 
 const explosionImg = new Image();
-explosionImg.src = '/assets/explosion.png';
+explosionImg.src = '/viewer/assets/explosion.png';
 
 
-const audio_fire = new Audio('/assets/fire.mp3');
-const audio_explosion = new Audio('/assets/explosion.mp3');
-const audio_new_player = new Audio('/assets/new_player.mp3');
+const audio_fire = new Audio('/viewer/assets/fire.mp3');
+const audio_explosion = new Audio('/viewer/assets/explosion.mp3');
+const audio_new_player = new Audio('/viewer/assets/new_player.mp3');
 
 
 $(function() {
@@ -52,7 +52,7 @@ function generateStars() {
 }
 
 function draw(worldState) {
-  $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
+  // $('div#debug').empty().html(JSON.stringify(worldState, null, 2));
   const canvas = $('#canvas');
   const ctx = canvas[0].getContext('2d');
 
