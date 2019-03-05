@@ -96,7 +96,7 @@ controller_socket.on('connection', function(socket) {
     if (!ctrl || !ctrl.alive) {
       return;
     }
-    let speed = 0;
+
     switch(command) {
       case 'fire':
         const id = Math.ceil(Math.random()*1000000);
@@ -112,22 +112,6 @@ controller_socket.on('connection', function(socket) {
       case 'orientation':
         ctrl.beta = 2*Math.PI*Math.floor(Math.abs(beta/10))*10*Math.sign(beta)/360;
         ctrl.gamma = gamma;
-      break;
-      case 'left':
-        ctrl.angle -= angleUnit;
-      break;
-      case 'right':
-        worldState.controllers[socket.id].angle += angleUnit;
-      break;
-      case 'forward':
-        speed = worldState.controllers[socket.id].speed + speedUnit;
-        if (speed<maxSpeed) {
-          worldState.controllers[socket.id].speed = speed;
-        }
-      break;
-      case 'back':
-        speed = Math.max(worldState.controllers[socket.id].speed - speedUnit, 0);
-        worldState.controllers[socket.id].speed = speed;
       break;
     }
   })
