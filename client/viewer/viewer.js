@@ -4,7 +4,13 @@ console.log('viewer js loaded');
 const PADDING = 10 + 5;
 
 const explosionImg = new Image();
-explosionImg.src = '/assets/explosion.png';
+explosionImg.src = '/viewer/assets/explosion.png';
+
+
+const audio_fire = new Audio('/viewer/assets/fire.mp3');
+const audio_explosion = new Audio('/viewer/assets/explosion.mp3');
+const audio_new_player = new Audio('/viewer/assets/new_player.mp3');
+
 
 $(function() {
   const socket = io.connect('/viewer');
@@ -15,6 +21,22 @@ $(function() {
 
   socket.on('refresh', function(newWorldState){
     draw(newWorldState);
+  });
+  socket.on('sound', function(type) {
+    switch(type) {
+      case 'fire':
+        audio_fire.play();
+      break;
+      case 'explosion':
+        audio_explosion.play();
+      break;
+      case 'new_player':
+        audio_new_player.play();
+      break;
+      default:
+        console.error('Bad sound type:', type);
+      break;
+    }
   });
 });
 

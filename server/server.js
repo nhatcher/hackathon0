@@ -2,8 +2,13 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const path = require('path');
 
-app.use(express.static(__dirname));
+
+const root_dir = path.join(__dirname, '/../', 'client');
+console.log(root_dir);
+
+app.use(express.static(root_dir));
 
 const controllers = {};
 const viewers = {};
@@ -29,11 +34,11 @@ const worldState = {
 }
 
 app.get('/viewer', function(req, res){
-  res.sendFile(__dirname +  '/viewer.html');
+  res.sendFile(path.join(root_dir, 'viewer', 'viewer.html'));
 });
 
 app.get('/controller', function(req, res) {
-  res.sendFile(__dirname + '/controller.html');
+  res.sendFile(path.join(root_dir, 'controller', 'controller.html'));
 });
 
 function getRandomColor() {
@@ -44,6 +49,12 @@ function getRandomColor() {
 function refreshViewers() {
   for (let viewer_id in viewers) {
     viewers[viewer_id].emit('refresh', worldState);
+  }
+}
+
+function sendSound(type) {
+  for (let viewer_id in viewers) {
+    viewers[viewer_id].emit('sound', type);
   }
 }
 
@@ -59,14 +70,19 @@ viewer_socket.on('connection', function(socket) {
 controller_socket.on('connection', function(socket) {
   console.log('a controller connected', socket.id);
   controllers[socket.id] = socket;
+  const color = getRandomColor();
   worldState.controllers[socket.id] = {
     x: parseInt((width+10)*Math.random()) + 20,
     y: parseInt((height+10)*Math.random()) + 20,
-    color: getRandomColor(),
+    color: color,
     angle: Math.random()*2*Math.PI,
     speed: 0,
-    alive: true
+    alive: true,
+    beta: 0,
+    gamma: 0
   }
+  socket.emit('setting', 'color', color);
+  sendSound('new_player');
   refreshViewers();
   socket.on('disconnect', () => {
     console.log('a controller disconnected', socket.id);
@@ -74,13 +90,13 @@ controller_socket.on('connection', function(socket) {
     delete worldState.controllers[socket.id];
     refreshViewers();
   });
-  socket.on('command', (command) => {
-    console.log(socket.id, command);
+  socket.on('command', (command, beta, gamma) => {
+    // console.log(socket.id, command);
     const ctrl = worldState.controllers[socket.id];
     if (!ctrl || !ctrl.alive) {
       return;
     }
-    let speed = 0;
+
     switch(command) {
       case 'fire':
         const id = Math.ceil(Math.random()*1000000);
@@ -91,22 +107,11 @@ controller_socket.on('connection', function(socket) {
           angle: angle,
           speed: ctrl.speed  + speedUnit*10
         }
+        sendSound('fire');
       break;
-      case 'left':
-        ctrl.angle -= angleUnit;
-      break;
-      case 'right':
-        worldState.controllers[socket.id].angle += angleUnit;
-      break;
-      case 'forward':
-        speed = worldState.controllers[socket.id].speed + speedUnit;
-        if (speed<maxSpeed) {
-          worldState.controllers[socket.id].speed = speed;
-        }
-      break;
-      case 'back':
-        speed = Math.max(worldState.controllers[socket.id].speed - speedUnit, 0);
-        worldState.controllers[socket.id].speed = speed;
+      case 'orientation':
+        ctrl.beta = 2*Math.PI*Math.floor(Math.abs(beta/10))*10*Math.sign(beta)/360;
+        ctrl.gamma = gamma;
       break;
     }
   })
@@ -119,14 +124,24 @@ http.listen(port, () => {
 
 function movePeriodic(ctrlls) {
   for (let key in ctrlls) {
+    const ctrl = ctrlls[key];
     let x = ctrlls[key].x;
     let y = ctrlls[key].y;
-    const angle = ctrlls[key].angle;
-    const speed = ctrlls[key].speed*5/fps;
-    // console.log(x,y, rad, key)
-    x += Math.ceil(speed*Math.sin(angle));
-    y -= Math.ceil(speed*Math.cos(angle));
-    // console.log(x, y);
+    let angle = ctrlls[key].angle;
+    let speed = ctrlls[key].speed;
+    if ('beta' in ctrl) {
+      const beta = ctrl.beta;
+      const gamma = ctrl.gamma;
+      angle += beta*5/fps;
+      speed += gamma/fps;
+      if (speed>maxSpeed) {
+        speed = maxSpeed;
+      } else if (speed<0) {
+        speed = 0;
+      }
+    }
+    x += Math.ceil(speed*Math.sin(angle)*5/fps);
+    y -= Math.ceil(speed*Math.cos(angle)*5/fps);
     if (x > width ) {
       x = x - width;
     }
@@ -140,25 +155,27 @@ function movePeriodic(ctrlls) {
       y = y + height;
     }
     ctrlls[key].y = y;
+    ctrl.angle = angle;
+    ctrl.speed = speed;
   }
 }
 
-
 function moveBounded(ctrlls) {
-  for (let key in ctrlls) {
-    let x = ctrlls[key].x;
-    let y = height - ctrlls[key].y;
-    const angle = Math.PI/2 - ctrlls[key].angle;
-    const speed = ctrlls[key].speed*5/fps;
-    // console.log(x,y, rad, key)
-    x += Math.ceil(speed*Math.cos(angle));
-    y += Math.ceil(speed*Math.sin(angle));
-    // console.log(x, y);
-    if (x < width - padding && x > padding) {
-      ctrlls[key].x = x;
-    }
-    if (y < height - padding && y > padding) {
-      ctrlls[key].y = height - y;
+  const keys = Object.keys(ctrlls);
+  for (let i=0; i<keys.length ; i++) {
+    const key = keys[i];
+    const ctrl = ctrlls[key];
+    let x = ctrl.x;
+    let y = ctrl.y;
+    let angle = ctrl.angle;
+    let speed = ctrl.speed;
+    x += Math.ceil(speed*Math.sin(angle)*5/fps);
+    y -= Math.ceil(speed*Math.cos(angle)*5/fps);
+    if (x <0 || x> width || y<0 || y>height) {
+      delete ctrlls[key];
+    } else {
+      ctrl.x = x;
+      ctrl.y = y;
     }
   }
 }
@@ -180,6 +197,7 @@ function testCollission(ctrlls, projectiles) {
     for (let key in ctrlls) {
       const ctrl = ctrlls[key];
       if (isCollision(ctrl, x, y)) {
+        sendSound('explosion');
         ctrl.alive = false;
         setTimeout(() => {
           delete ctrlls[key];
@@ -194,7 +212,7 @@ function loop() {
   const ctrlls = worldState.controllers;
   const projectiles = worldState.projectiles;
   movePeriodic(ctrlls);
-  movePeriodic(projectiles);
+  moveBounded(projectiles);
   testCollission(ctrlls, projectiles);
 
   refreshViewers();
